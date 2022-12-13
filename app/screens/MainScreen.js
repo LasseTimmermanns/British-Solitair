@@ -2,6 +2,8 @@ import { StyleSheet, View, ImageBackground} from 'react-native'
 import React from 'react'
 import FieldComponent from '../components/FieldComponent';
 
+import FieldManagementService from '../services/FieldManagementService';
+
 export function MainScreen(props) {
   
   const fieldsScheme = 
@@ -22,7 +24,12 @@ export function MainScreen(props) {
       x = 0;
     }
 
-    fieldsObjects.push(<FieldComponent key={(y * 7 + x).toString()} active={bool[0].toString()} hasPin={bool[1].toString()} x={x.toString()} y={y.toString()} />);
+    let componentRef = React.createRef(); 
+
+    fieldsObjects.push(<FieldComponent key={(y * 7 + x).toString()} active={bool[0].toString()} hasPin={bool[1].toString()} x={x.toString()} y={y.toString()} ref={componentRef} />);
+    
+    FieldManagementService.addFieldToDict(FieldManagementService.generateId(x, y),componentRef);
+    
     x++;
   });
   return (

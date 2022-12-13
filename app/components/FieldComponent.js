@@ -33,16 +33,18 @@ class FieldComponent extends React.Component {
 
   render(){
     return (
-      <View style={[styles(this.active).cell,]}>
-        <TouchableWithoutFeedback  
+      <TouchableWithoutFeedback  
           onPress={() => {
             if(!this.state.pinned) return;
             this.setSelected(!this.state.selected);
             PinService.selectField(FieldManagementService.generateId(this.x, this.y));
           }}>
-          <View style={markerStyles(this.state.pinned, this.state.selected).marker}/>
+
+          <View style={[styles(this.active).cell,]}>
+              <View style={markerStyles(this.state.pinned, this.state.selected).marker}/>
+          </View>
+          
         </TouchableWithoutFeedback>
-      </View>
     )
   }
 }
