@@ -3,9 +3,7 @@ import React, { Component, useState } from 'react'
 
 import PinService from '../services/PinService';
 import FieldManagementService from '../services/FieldManagementService';
-
-
-var isSelected = false;
+import MovementService from '../services/MovementService';
 
 class FieldComponent extends React.Component {
   constructor(props){
@@ -13,6 +11,7 @@ class FieldComponent extends React.Component {
     this.active = (props.active === "true");
     this.x = parseInt(props.x);
     this.y = parseInt(props.y);
+    this.id = FieldManagementService.getId(this.x, this.y);
     
 
     this.state = {
@@ -26,19 +25,56 @@ class FieldComponent extends React.Component {
     this.forceUpdate();
   }
 
+  isPinned = () => {
+    return this.state.pinned;
+  }
+
   setSelected = (selected) => {
     this.state.selected = selected;
     this.forceUpdate();
   }
 
+  //Method to check if a pin wants to go here
+  checkIfPinSets = () => {
+
+    //When cell is pinned nobody can go here
+    if(this.state.pinned) return false;
+
+    //Check if cell between has pin
+    function betweenHasPin(selectedFieldId, currentFieldId) {
+      const betweenRef = FieldManagementService.getComponentRef(FieldManagementService.getFieldBetween(selectedFieldId, currentFieldId)).current;
+      return betweenRef.isPinned();
+    }
+
+    //Check if selected is two cells away 
+    function positionFits(selectedFieldId, currentFieldId) {
+      let possibleCellIds = MovementService.getPossibleFieldsFromId(selectedFieldId);
+      return possibleCellIds.includes(currentFieldId);
+    }
+
+    let selectedFieldId = PinService.getSelectedFieldId();
+    return positionFits(selectedFieldId, this.id) && betweenHasPin(selectedFieldId, this.id);
+  } 
+
+  select = () => {
+    PinService.selectField(this.id);
+    this.setSelected(!this.state.selected);
+  }
+
+  onPress = () => {
+    if(this.state.pinned) this.select();
+    //if(!this.state.pinned) PinService.unselectField();
+
+    if(this.checkIfPinSets()){
+      MovementService.registerMove(PinService.getSelectedFieldId(), this.id);
+    }
+    
+  }
+
   render(){
     return (
       <TouchableWithoutFeedback  
-          onPress={() => {
-            if(!this.state.pinned) return;
-            this.setSelected(!this.state.selected);
-            PinService.selectField(FieldManagementService.generateId(this.x, this.y));
-          }}>
+          onPress={() => {this.onPress()}}>
 
           <View style={[styles(this.active).cell,]}>
               <View style={markerStyles(this.state.pinned, this.state.selected).marker}/>
